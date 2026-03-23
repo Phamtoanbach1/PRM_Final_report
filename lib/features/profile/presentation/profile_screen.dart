@@ -118,21 +118,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 48),
             FadeInUp(
               delay: const Duration(milliseconds: 400),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Provider.of<AuthProvider>(context, listen: false).logout();
-                    context.go('/login');
-                  },
-                  icon: const Icon(LineIcons.alternateSignOut, color: Colors.red),
-                  label: const Text('Đăng Xuất', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: Colors.red, width: 2),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Provider.of<AuthProvider>(context, listen: false).logout();
+                        context.go('/login');
+                      },
+                      icon: const Icon(LineIcons.alternateSignOut, color: Colors.red),
+                      label: const Text('Đăng Xuất', style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: const BorderSide(color: Colors.red, width: 2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.go('/operator/bookings'),
+                      icon: const Icon(LineIcons.checkCircle),
+                      label: const Text('Operator: Manage Bookings'),
+                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

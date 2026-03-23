@@ -12,6 +12,12 @@ import '../../features/home/presentation/home_screen.dart';
 import '../../features/tours/presentation/tours_screen.dart';
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/booking/pages/boat_list_page.dart';
+import '../../features/booking/pages/boat_detail_page.dart';
+import '../../features/booking/pages/booking_form_page.dart';
+import '../../features/booking/pages/booking_list_page.dart';
+import '../../features/booking/pages/booking_detail_page.dart';
+import '../../features/booking/pages/operator_booking_page.dart';
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -35,6 +41,39 @@ class AppRouter {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/boats',
+        builder: (context, state) => const BoatListPage(),
+      ),
+      GoRoute(
+        path: '/boat/:id',
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '0');
+          return BoatDetailPage(boatId: id ?? 1);
+        },
+      ),
+      GoRoute(
+        path: '/boat/:id/book',
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '0');
+          return BookingFormPage(boatId: id ?? 1);
+        },
+      ),
+      GoRoute(
+        path: '/bookings',
+        builder: (context, state) => const BookingListPage(),
+      ),
+      GoRoute(
+        path: '/bookings/:id',
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '0');
+          return BookingDetailPage(bookingId: id ?? 0);
+        },
+      ),
+      GoRoute(
+        path: '/operator/bookings',
+        builder: (context, state) => const OperatorBookingPage(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

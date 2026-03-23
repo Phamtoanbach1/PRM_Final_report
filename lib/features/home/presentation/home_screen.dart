@@ -116,10 +116,15 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             
-            // Featured Tours Title
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text('Featured Tours', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 6.0),
+              child: Row(
+                children: [
+                  Expanded(child: Text('Featured Tours', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87))),
+                  TextButton(onPressed: () => Navigator.of(context).pushNamed('/boats'), child: const Text('View all boats')),
+                  TextButton(onPressed: () => Navigator.of(context).pushNamed('/bookings'), child: const Text('My bookings')),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             
@@ -130,9 +135,9 @@ class HomeScreen extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  _buildTourCard('Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg'),
-                  _buildTourCard('Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg'),
-                  _buildTourCard('Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg'),
+                  _buildTourCard(context,'Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg', 3),
+                  _buildTourCard(context,'Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg', 2),
+                  _buildTourCard(context,'Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg', 1),
                 ],
               ),
             ),
@@ -143,7 +148,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTourCard(String title, String price, String rating, String imageUrl) {
+  Widget _buildTourCard(BuildContext context,String title, String price, String rating, String imageUrl, int boatId) {
     return Container(
       width: 220,
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -191,20 +196,21 @@ class HomeScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 40,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () => Navigator.of(context).pushNamed('/boat/$boatId'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6A74D1), // Purple-blue flat button
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-                    child: const Text('Đặt ngay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      child: Text('Đặt ngay', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 )
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
+
 }
