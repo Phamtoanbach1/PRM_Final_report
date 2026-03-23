@@ -25,7 +25,7 @@ class MainApp extends StatelessWidget {
     context.watch<AuthProvider>();
 
     return MaterialApp.router(
-      title: 'Đà Nẵng Cruise',
+      title: 'HanCruise',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
