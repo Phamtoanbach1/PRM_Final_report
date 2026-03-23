@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/providers/auth_provider.dart';
@@ -20,9 +21,13 @@ class AppRouter {
   static final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
   static final router = GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/splash',
     navigatorKey: _rootNavigatorKey,
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
@@ -80,12 +85,13 @@ class AppRouter {
       final isLoggedIn = authProvider.isAuthenticated;
       final isGoingToLogin = state.matchedLocation == '/login';
       final isGoingToRegister = state.matchedLocation == '/register';
+      final isGoingToSplash = state.matchedLocation == '/splash';
 
-      if (!isLoggedIn && !isGoingToLogin && !isGoingToRegister) {
+      if (!isLoggedIn && !isGoingToLogin && !isGoingToRegister && !isGoingToSplash) {
         return '/login';
       }
 
-      if (isLoggedIn && (isGoingToLogin || isGoingToRegister)) {
+      if (isLoggedIn && (isGoingToLogin || isGoingToRegister || isGoingToSplash)) {
         return '/home';
       }
 

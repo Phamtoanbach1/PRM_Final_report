@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
-import '../../../core/constants/app_colors.dart';
+import 'package:line_icons/line_icons.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -8,115 +7,202 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 250.0,
-            floating: false,
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text('Đà Nẵng Cruise', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              background: Stack(
-                fit: StackFit.expand,
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Header specific to Figma design
+            SizedBox(
+              height: 380, // Accommodate the Han river image
+              child: Stack(
                 children: [
+                  // Background Image
                   Container(
+                    width: double.infinity,
+                    height: 350,
                     decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/han_river.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  // Dark Top Gradient Overlay
+                  Container(
+                    height: 180,
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [AppColors.secondary, AppColors.primary],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: -20,
-                    bottom: -20,
-                    child: Icon(Icons.directions_boat, size: 150, color: Colors.white.withValues(alpha: 0.15)),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  FadeInDown(
-                    child: const Text(
-                      'Khám phá Sông Hàn',
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  FadeInDown(
-                    delay: const Duration(milliseconds: 200),
-                    child: const Text(
-                      'Trải nghiệm du thuyền sang trọng bậc nhất',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 400),
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 24,
-                            offset: const Offset(0, 12),
-                          )
+                        colors: [
+                          const Color(0xFF0F1B3E).withValues(alpha: 0.9),
+                          Colors.transparent,
                         ],
                       ),
-                      child: Row(
+                    ),
+                  ),
+                  
+                  // Content Info
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.accent.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Text('Tour Nổi Bật', style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Current Location', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13)),
+                                  const SizedBox(height: 4),
+                                  const Text('Đà Nẵng: 28°C, Ít Mây', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                                const SizedBox(height: 12),
-                                const Text('Du thuyền & Tiệc tối', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                                const SizedBox(height: 6),
-                                const Text('Ngắm cầu Rồng phun lửa', style: TextStyle(color: Colors.grey)),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                  onPressed: () {},
-                                  child: const Text('Xem Ngay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                )
+                                child: const Icon(Icons.cloud_queue, color: Colors.yellowAccent, size: 28),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          // Search Bar over the image
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))
                               ],
                             ),
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Tìm kiếm tour, địa điểm...',
+                                hintStyle: const TextStyle(color: Colors.grey),
+                                icon: Icon(LineIcons.search, color: Colors.grey[400]),
+                                border: InputBorder.none,
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: 16),
-                          const Icon(Icons.sailing_rounded, size: 80, color: AppColors.secondary),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 120), // Tránh đè lên Bottom NavBar Float
+                  
+                  // Floating White Container bottom masking
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),
+            
+            // Featured Tours Title
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Text('Featured Tours', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
+            ),
+            const SizedBox(height: 16),
+            
+            // Horizontal Scroll List
+            SizedBox(
+              height: 320,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _buildTourCard('Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg'),
+                  _buildTourCard('Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg'),
+                  _buildTourCard('Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 80), // Padding for nav bar
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTourCard(String title, String price, String rating, String imageUrl) {
+    return Container(
+      width: 220,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 5))
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+            child: Image.asset(
+              imageUrl,
+              height: 180,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(price, style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.orange, size: 16),
+                        const SizedBox(width: 4),
+                        Text(rating, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                      ],
+                    )
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6A74D1), // Purple-blue flat button
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: const Text('Đặt ngay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                )
+              ],
+            ),
+          )
         ],
       ),
     );
