@@ -1,6 +1,5 @@
 import 'package:prm_final_report/database/db_helper.dart';
 import 'package:prm_final_report/models/booking_model.dart';
-import 'package:sqflite/sqflite.dart';
 
 class BookingRepository {
   final DBHelper _dbHelper = DBHelper();
@@ -18,6 +17,17 @@ class BookingRepository {
       whereArgs: [boatId, date, BookingStatus.cancelled.name],
     );
     return maps.map((map) => Booking.fromMap(map)).toList();
+  }
+
+  // New: Get a map of dates and how many bookings they have
+  Future<Map<String, int>> getBookingsCountPerDate(int boatId) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      'SELECT date, COUNT(*) as count FROM bookings WHERE boat_id = ? AND status != ? GROUP BY date',
+      [boatId, BookingStatus.cancelled.name],
+    );
+    
+    return {for (var item in result) item['date'] as String: item['count'] as int};
   }
 
   Future<List<Booking>> getAllBookings() async {
