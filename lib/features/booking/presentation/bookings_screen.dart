@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../boats/providers/boat_provider.dart';
 import '../domain/booking_model.dart';
 import '../providers/booking_provider.dart';
 import 'widgets/booking_status_badge.dart';
@@ -16,13 +18,14 @@ class BookingsScreen extends StatefulWidget {
 }
 
 class _BookingsScreenState extends State<BookingsScreen> {
-  int _filterIndex = 0; // 0: all, 1: pending, 2: confirmed, 3: cancelled
+  int _filterIndex = 0; // 0: all, 1: pending, 2: confirmed, 3: cancelled, 4: rejected
 
   static const _filters = <String>[
     'Tất cả',
     'Chờ xác nhận',
     'Đã xác nhận',
     'Đã hủy',
+    'Từ chối',
   ];
 
   BookingStatus? _statusForIndex(int i) {
@@ -33,6 +36,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
         return BookingStatus.confirmed;
       case 3:
         return BookingStatus.cancelled;
+      case 4:
+        return BookingStatus.rejected;
       default:
         return null;
     }
@@ -45,7 +50,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      floatingActionButton: FloatingAction.extended(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/bookings/create'),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
@@ -85,13 +90,23 @@ class _BookingsScreenState extends State<BookingsScreen> {
             ),
             const SizedBox(height: 12),
             Expanded(
-              child: Consumer<BookingProvider>(
-                builder: (context, provider, _) {
-                  if (provider.isLoading && provider.bookings.isEmpty) {
+              child: Consumer3<BookingProvider, AuthProvider, BoatProvider>(
+                builder: (context, provider, auth, boatProvider, _) {
+                  final ownerBoatIds = boatProvider
+                      .boatsForAdminScope(auth.role, auth.displayEmail)
+                      .map((e) => e.id)
+                      .toSet();
+                  final visibleBookings = provider.visibleBookingsForRole(
+                    role: auth.role,
+                    email: auth.displayEmail,
+                    ownerBoatIds: ownerBoatIds,
+                  );
+
+                  if (provider.isLoading && visibleBookings.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   final status = _statusForIndex(_filterIndex);
-                  final list = provider.filteredByStatus(status);
+                  final list = provider.filteredByStatusIn(visibleBookings, status);
                   if (list.isEmpty) {
                     return Center(
                       child: Padding(

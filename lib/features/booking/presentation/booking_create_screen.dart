@@ -4,8 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../domain/boat_options.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../boats/domain/boat.dart';
+import '../../boats/providers/boat_provider.dart';
 import '../providers/booking_provider.dart';
+import '../providers/promo_provider.dart';
 
 class BookingCreateScreen extends StatefulWidget {
   const BookingCreateScreen({super.key, this.prefillBoatId});
@@ -18,27 +21,26 @@ class BookingCreateScreen extends StatefulWidget {
 }
 
 class _BookingCreateScreenState extends State<BookingCreateScreen> {
-  late BoatOption _boat;
+  static const Map<String, double> _promoRules = {
+    'GIAM10': 0.10,
+    'GIAM20': 0.20,
+    'LINHVIP': 0.15,
+  };
+
+  Boat? _boat;
   DateTime _day = DateTime.now();
   TimeOfDay _startT = const TimeOfDay(hour: 9, minute: 0);
   TimeOfDay _endT = const TimeOfDay(hour: 11, minute: 0);
   int _passengers = 2;
   final _note = TextEditingController();
+  final _promo = TextEditingController();
   bool _submitting = false;
+  String? _appliedPromoCode;
+  double _appliedDiscountPercent = 0;
 
   @override
   void initState() {
     super.initState();
-    _boat = kBoatOptions.first;
-    final id = widget.prefillBoatId;
-    if (id != null) {
-      for (final o in kBoatOptions) {
-        if (o.id == id) {
-          _boat = o;
-          break;
-        }
-      }
-    }
   }
 
   DateTime _combine(DateTime day, TimeOfDay t) {
@@ -48,7 +50,54 @@ class _BookingCreateScreenState extends State<BookingCreateScreen> {
   @override
   void dispose() {
     _note.dispose();
+    _promo.dispose();
     super.dispose();
+  }
+
+  void _applyPromo() {
+    final selectedBoat = _boat;
+    if (selectedBoat == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn thuyền trước khi áp dụng mã')),
+      );
+      return;
+    }
+    final code = _promo.text.trim().toUpperCase();
+    if (code.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nhập mã giảm giá trước khi áp dụng')),
+      );
+      return;
+    }
+    final start = _combine(_day, _startT);
+    final end = _combine(_day, _endT);
+    final promoProvider = context.read<PromoProvider>();
+    final dynamicResult = promoProvider.validatePromo(
+      code: code,
+      boatId: selectedBoat.id,
+      boatOwnerEmail: selectedBoat.ownerEmail,
+      start: start,
+      end: end,
+    );
+    final fallbackPercent = _promoRules[code];
+    final percent = dynamicResult.ok ? dynamicResult.promo!.discountPercent : fallbackPercent;
+    if (percent == null) {
+      setState(() {
+        _appliedPromoCode = null;
+        _appliedDiscountPercent = 0;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(dynamicResult.reason ?? 'Mã giảm giá không hợp lệ')),
+      );
+      return;
+    }
+    setState(() {
+      _appliedPromoCode = code;
+      _appliedDiscountPercent = percent;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Đã áp dụng mã $code (-${(percent * 100).toInt()}%)')),
+    );
   }
 
   Future<void> _pickDate() async {
@@ -98,10 +147,26 @@ class _BookingCreateScreenState extends State<BookingCreateScreen> {
 
   Future<void> _submit() async {
     final provider = context.read<BookingProvider>();
+    final promoProvider = context.read<PromoProvider>();
+    final auth = context.read<AuthProvider>();
+    final selectedBoat = _boat;
+    if (selectedBoat == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn thuyền')),
+      );
+      return;
+    }
+    if (auth.isShopOwner &&
+        selectedBoat.ownerEmail.toLowerCase() == (auth.displayEmail ?? '').toLowerCase()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Shop owner không thể đặt thuyền của chính mình')),
+      );
+      return;
+    }
     final start = _combine(_day, _startT);
     final end = _combine(_day, _endT);
 
-    final err = provider.validateSlot(boatId: _boat.id, start: start, end: end);
+    final err = provider.validateSlot(boatId: selectedBoat.id, start: start, end: end);
     if (err != null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
@@ -109,18 +174,39 @@ class _BookingCreateScreenState extends State<BookingCreateScreen> {
     }
 
     setState(() => _submitting = true);
+    final rawNote = _note.text.trim();
+    final mergedNote = _appliedPromoCode == null
+        ? (rawNote.isEmpty ? null : rawNote)
+        : '${rawNote.isEmpty ? '' : '$rawNote\n'}Mã giảm giá: $_appliedPromoCode';
     final ok = await provider.createBooking(
-      boatId: _boat.id,
-      boatName: _boat.name,
+      boatId: selectedBoat.id,
+      boatName: selectedBoat.name,
+      boatHourlyPrice: selectedBoat.hourlyPrice,
       start: start,
       end: end,
       passengerCount: _passengers,
-      note: _note.text.trim().isEmpty ? null : _note.text.trim(),
+      note: mergedNote,
+      promoCode: _appliedPromoCode,
+      discountPercent: _appliedDiscountPercent > 0 ? _appliedDiscountPercent : null,
     );
     setState(() => _submitting = false);
 
     if (!mounted) return;
     if (ok) {
+      final applied = _appliedPromoCode;
+      if (applied != null) {
+        final validation = promoProvider.validatePromo(
+          code: applied,
+          boatId: selectedBoat.id,
+          boatOwnerEmail: selectedBoat.ownerEmail,
+          start: start,
+          end: end,
+        );
+        final promo = validation.promo;
+        if (promo != null) {
+          await promoProvider.markPromoUsed(promo.id);
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đã tạo booking — chờ xác nhận')),
       );
@@ -135,10 +221,28 @@ class _BookingCreateScreenState extends State<BookingCreateScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BookingProvider>();
+    final boatProvider = context.watch<BoatProvider>();
+    final boats = boatProvider.allBoats;
+    if (_boat == null && boats.isNotEmpty) {
+      _boat = boats.firstWhere(
+        (b) => b.id == widget.prefillBoatId,
+        orElse: () => boats.first,
+      );
+    }
     final start = _combine(_day, _startT);
     final end = _combine(_day, _endT);
-    final price = provider.calculatePrice(start: start, end: end, passengerCount: _passengers);
-    final conflict = provider.validateSlot(boatId: _boat.id, start: start, end: end);
+    final selectedBoat = _boat;
+    final originalPrice = provider.calculatePrice(
+      start: start,
+      end: end,
+      passengerCount: _passengers,
+      boatHourlyPrice: selectedBoat?.hourlyPrice,
+    );
+    final finalPrice = originalPrice * (1 - _appliedDiscountPercent);
+    final discountAmount = originalPrice - finalPrice;
+    final conflict = selectedBoat == null
+        ? null
+        : provider.validateSlot(boatId: selectedBoat.id, start: start, end: end);
     final currency = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
     final timeFmt = DateFormat('HH:mm');
 
@@ -164,11 +268,11 @@ class _BookingCreateScreenState extends State<BookingCreateScreen> {
               border: Border.all(color: Colors.grey.shade200),
             ),
             child: DropdownButtonHideUnderline(
-              child: DropdownButton<BoatOption>(
+              child: DropdownButton<Boat>(
                 isExpanded: true,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                value: _boat,
-                items: kBoatOptions
+                value: selectedBoat,
+                items: boats
                     .map(
                       (b) => DropdownMenuItem(
                         value: b,
@@ -253,6 +357,45 @@ class _BookingCreateScreenState extends State<BookingCreateScreen> {
           ),
           const SizedBox(height: 12),
           TextField(
+            controller: _promo,
+            textCapitalization: TextCapitalization.characters,
+            decoration: InputDecoration(
+              labelText: 'Mã giảm giá',
+              hintText: 'Ví dụ: GIAM10, GIAM20, LINHVIP',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              suffixIcon: Padding(
+                padding: const EdgeInsets.all(8),
+                child: FilledButton(
+                  onPressed: _applyPromo,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    minimumSize: const Size(88, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  child: const Text('Áp dụng'),
+                ),
+              ),
+            ),
+            onChanged: (_) {
+              if (_appliedPromoCode != null) {
+                setState(() {
+                  _appliedPromoCode = null;
+                  _appliedDiscountPercent = 0;
+                });
+              }
+            },
+          ),
+          if (_appliedPromoCode != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Đã áp dụng $_appliedPromoCode (-${(_appliedDiscountPercent * 100).toInt()}%)',
+              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+            ),
+          ],
+          const SizedBox(height: 12),
+          TextField(
             controller: _note,
             maxLines: 2,
             decoration: InputDecoration(
@@ -279,13 +422,20 @@ class _BookingCreateScreenState extends State<BookingCreateScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  currency.format(price),
+                  currency.format(finalPrice),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (_appliedDiscountPercent > 0) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Giá gốc: ${currency.format(originalPrice)} • Giảm: ${currency.format(discountAmount)}',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 12),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Text(
                   'Gồm phí thuyền theo giờ + phí khách theo giờ (demo)',
@@ -321,7 +471,7 @@ class _BookingCreateScreenState extends State<BookingCreateScreen> {
           SizedBox(
             height: 52,
             child: FilledButton(
-              onPressed: (_submitting || conflict != null) ? null : _submit,
+              onPressed: (_submitting || conflict != null || selectedBoat == null) ? null : _submit,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

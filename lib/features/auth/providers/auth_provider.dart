@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/local/shared_prefs_helper.dart';
+import '../domain/user_role.dart';
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider() {
@@ -11,6 +12,7 @@ class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
   String? _email;
   String? _name;
+  UserRole _role = UserRole.user;
 
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _isAuthenticated;
@@ -20,12 +22,27 @@ class AuthProvider extends ChangeNotifier {
 
   /// Tên hiển thị (đăng ký), có thể null nếu chỉ đăng nhập.
   String? get displayName => _name;
+  UserRole get role => _role;
+  bool get isAdmin => _role == UserRole.admin;
+  bool get isShopOwner => _role == UserRole.shopOwner;
+  bool get canAccessAdmin => isAdmin || isShopOwner;
 
   Future<void> checkAuthStatus() async {
     _isAuthenticated = await SharedPrefsHelper.isLoggedIn();
     _email = await SharedPrefsHelper.getUserEmail();
     _name = await SharedPrefsHelper.getUserName();
+    _role = UserRole.fromStorage(await SharedPrefsHelper.getUserRole());
     notifyListeners();
+  }
+
+  UserRole _resolveRoleByEmail(String email) {
+    final normalized = email.trim().toLowerCase();
+    if (normalized == 'admin@hancruise.local') return UserRole.admin;
+    if ((normalized.startsWith('owner') || normalized.startsWith('shop'))
+        && normalized.endsWith('@hancruise.local')) {
+      return UserRole.shopOwner;
+    }
+    return UserRole.user;
   }
 
   Future<bool> login(String email, String password) async {
@@ -35,11 +52,14 @@ class AuthProvider extends ChangeNotifier {
     await Future.delayed(const Duration(seconds: 1));
 
     if (email.trim().isNotEmpty && password.isNotEmpty) {
+      final resolvedRole = _resolveRoleByEmail(email);
       await SharedPrefsHelper.saveSession(
         token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
         email: email.trim(),
+        role: resolvedRole.storageValue,
       );
       _email = email.trim();
+      _role = resolvedRole;
       _isAuthenticated = true;
       _isLoading = false;
       notifyListeners();
@@ -50,7 +70,11 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
-  Future<bool> register(String name, String email, String password) async {
+  Future<bool> register(
+    String name,
+    String email,
+    String password,
+  ) async {
     _isLoading = true;
     notifyListeners();
 
@@ -61,9 +85,11 @@ class AuthProvider extends ChangeNotifier {
         token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
         email: email.trim(),
         name: name.trim(),
+        role: UserRole.user.storageValue,
       );
       _email = email.trim();
       _name = name.trim();
+      _role = UserRole.user;
       _isAuthenticated = true;
       _isLoading = false;
       notifyListeners();
@@ -82,6 +108,7 @@ class AuthProvider extends ChangeNotifier {
     _isAuthenticated = false;
     _email = null;
     _name = null;
+    _role = UserRole.user;
     _isLoading = false;
     notifyListeners();
   }

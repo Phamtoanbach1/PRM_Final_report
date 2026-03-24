@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../boats/providers/boat_provider.dart';
 import '../domain/booking_model.dart';
 import '../providers/booking_provider.dart';
 import 'widgets/booking_status_badge.dart';
@@ -18,20 +20,36 @@ class BookingDetailScreen extends StatelessWidget {
     final currency = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
-    return Consumer<BookingProvider>(
-      builder: (context, provider, _) {
-        final b = provider.byId(bookingId);
+    return Consumer3<BookingProvider, AuthProvider, BoatProvider>(
+      builder: (context, provider, auth, boatProvider, _) {
+        final ownerBoatIds = boatProvider
+            .boatsForAdminScope(auth.role, auth.displayEmail)
+            .map((e) => e.id)
+            .toSet();
+        final visibleBookings = provider.visibleBookingsForRole(
+          role: auth.role,
+          email: auth.displayEmail,
+          ownerBoatIds: ownerBoatIds,
+        );
+        Booking? b;
+        for (final item in visibleBookings) {
+          if (item.id == bookingId) {
+            b = item;
+            break;
+          }
+        }
         if (b == null) {
           return Scaffold(
             appBar: AppBar(title: const Text('Chi tiết')),
-            body: const Center(child: Text('Không tìm thấy booking')),
+            body: const Center(child: Text('Không tìm thấy booking hoặc bạn không có quyền xem')),
           );
         }
+        final booking = b;
 
         final canCancel =
-            b.status == BookingStatus.pending || b.status == BookingStatus.confirmed;
-        final canConfirmDemo = b.status == BookingStatus.pending;
-        final canPay = b.status != BookingStatus.cancelled;
+            booking.status == BookingStatus.pending || booking.status == BookingStatus.confirmed;
+        final canConfirmDemo = booking.status == BookingStatus.pending;
+        final canPay = booking.status != BookingStatus.cancelled && booking.status != BookingStatus.rejected;
 
         return Scaffold(
           backgroundColor: AppColors.background,
@@ -43,22 +61,43 @@ class BookingDetailScreen extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
             children: [
-              Center(child: BookingStatusBadge(status: b.status)),
+              Center(child: BookingStatusBadge(status: booking.status)),
               const SizedBox(height: 20),
               _card(
                 children: [
-                  _line('Thuyền', b.boatName, Icons.sailing),
+                  _line('Thuyền', booking.boatName, Icons.sailing),
                   const Divider(height: 24),
-                  _line('Bắt đầu', dateFmt.format(b.startAt), Icons.play_circle_outline),
+                  _line('Bắt đầu', dateFmt.format(booking.startAt), Icons.play_circle_outline),
                   const SizedBox(height: 12),
-                  _line('Kết thúc', dateFmt.format(b.endAt), Icons.stop_circle_outlined),
+                  _line('Kết thúc', dateFmt.format(booking.endAt), Icons.stop_circle_outlined),
                   const Divider(height: 24),
-                  _line('Số khách', '${b.passengerCount}', Icons.people_outline),
-                  const Divider(height: 24),
-                  _line('Tạo lúc', dateFmt.format(b.createdAt), Icons.history),
-                  if (b.note != null && b.note!.isNotEmpty) ...[
+                  _line('Số khách', '${booking.passengerCount}', Icons.people_outline),
+                  if (booking.promoCode != null) ...[
                     const Divider(height: 24),
-                    _line('Ghi chú', b.note!, Icons.note_outlined),
+                    _line(
+                      'Mã giảm giá',
+                      '${booking.promoCode} (-${((booking.discountPercent ?? 0) * 100).toInt()}%)',
+                      Icons.discount_outlined,
+                    ),
+                  ],
+                  const Divider(height: 24),
+                  _line('Tạo lúc', dateFmt.format(booking.createdAt), Icons.history),
+                  if (booking.note != null && booking.note!.isNotEmpty) ...[
+                    const Divider(height: 24),
+                    _line('Ghi chú', booking.note!, Icons.note_outlined),
+                  ],
+                  if (booking.reviewReason != null && booking.reviewReason!.isNotEmpty) ...[
+                    const Divider(height: 24),
+                    _line('Lý do duyệt/từ chối', booking.reviewReason!, Icons.policy_outlined),
+                  ],
+                  if (booking.reviewedBy != null || booking.reviewedAt != null) ...[
+                    const Divider(height: 24),
+                    _line(
+                      'Audit',
+                      '${booking.reviewAction ?? 'updated'} bởi ${booking.reviewedBy ?? 'system'}'
+                          '${booking.reviewedAt != null ? ' lúc ${dateFmt.format(booking.reviewedAt!)}' : ''}',
+                      Icons.fact_check_outlined,
+                    ),
                   ],
                 ],
               ),
@@ -75,21 +114,47 @@ class BookingDetailScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Tổng thanh toán', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text(
-                      currency.format(b.totalPrice),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondary,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (booking.originalPrice != null)
+                          Text(
+                            currency.format(booking.originalPrice),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        Text(
+                          currency.format(booking.totalPrice),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondary,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
+              if (booking.originalPrice != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Bạn đã tiết kiệm ${currency.format((booking.originalPrice ?? booking.totalPrice) - booking.totalPrice)}',
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               if (canPay)
                 FilledButton.icon(
-                  onPressed: () => context.push('/payment', extra: b),
+                  onPressed: () => context.push('/payment', extra: booking),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.secondary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -102,7 +167,7 @@ class BookingDetailScreen extends StatelessWidget {
               if (canConfirmDemo)
                 OutlinedButton.icon(
                   onPressed: () async {
-                    await provider.confirmBooking(b.id);
+                    await provider.confirmBooking(booking.id);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Đã xác nhận booking (demo)')),
@@ -137,7 +202,7 @@ class BookingDetailScreen extends StatelessWidget {
                       ),
                     );
                     if (ok == true && context.mounted) {
-                      await provider.cancelBooking(b.id);
+                      await provider.cancelBooking(booking.id);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Đã hủy booking')),

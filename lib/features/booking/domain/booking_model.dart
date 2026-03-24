@@ -3,7 +3,8 @@ import 'dart:convert';
 enum BookingStatus {
   pending,
   confirmed,
-  cancelled;
+  cancelled,
+  rejected;
 
   String get labelVi {
     switch (this) {
@@ -13,6 +14,8 @@ enum BookingStatus {
         return 'Đã xác nhận';
       case BookingStatus.cancelled:
         return 'Đã hủy';
+      case BookingStatus.rejected:
+        return 'Từ chối';
     }
   }
 
@@ -36,6 +39,13 @@ class Booking {
     required this.totalPrice,
     required this.createdAt,
     this.note,
+    this.discountPercent,
+    this.promoCode,
+    this.originalPrice,
+    this.reviewReason,
+    this.reviewedBy,
+    this.reviewedAt,
+    this.reviewAction,
   });
 
   final String id;
@@ -48,6 +58,13 @@ class Booking {
   final double totalPrice;
   final DateTime createdAt;
   final String? note;
+  final double? discountPercent;
+  final String? promoCode;
+  final double? originalPrice;
+  final String? reviewReason;
+  final String? reviewedBy;
+  final DateTime? reviewedAt;
+  final String? reviewAction;
 
   Booking copyWith({
     String? id,
@@ -60,6 +77,13 @@ class Booking {
     double? totalPrice,
     DateTime? createdAt,
     String? note,
+    double? discountPercent,
+    String? promoCode,
+    double? originalPrice,
+    String? reviewReason,
+    String? reviewedBy,
+    DateTime? reviewedAt,
+    String? reviewAction,
   }) {
     return Booking(
       id: id ?? this.id,
@@ -72,6 +96,13 @@ class Booking {
       totalPrice: totalPrice ?? this.totalPrice,
       createdAt: createdAt ?? this.createdAt,
       note: note ?? this.note,
+      discountPercent: discountPercent ?? this.discountPercent,
+      promoCode: promoCode ?? this.promoCode,
+      originalPrice: originalPrice ?? this.originalPrice,
+      reviewReason: reviewReason ?? this.reviewReason,
+      reviewedBy: reviewedBy ?? this.reviewedBy,
+      reviewedAt: reviewedAt ?? this.reviewedAt,
+      reviewAction: reviewAction ?? this.reviewAction,
     );
   }
 
@@ -86,6 +117,13 @@ class Booking {
         'totalPrice': totalPrice,
         'createdAt': createdAt.toIso8601String(),
         'note': note,
+        'discountPercent': discountPercent,
+        'promoCode': promoCode,
+        'originalPrice': originalPrice,
+        'reviewReason': reviewReason,
+        'reviewedBy': reviewedBy,
+        'reviewedAt': reviewedAt?.toIso8601String(),
+        'reviewAction': reviewAction,
       };
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -100,6 +138,13 @@ class Booking {
       totalPrice: (json['totalPrice'] as num).toDouble(),
       createdAt: DateTime.parse(json['createdAt'] as String),
       note: json['note'] as String?,
+      discountPercent: (json['discountPercent'] as num?)?.toDouble(),
+      promoCode: json['promoCode'] as String?,
+      originalPrice: (json['originalPrice'] as num?)?.toDouble(),
+      reviewReason: json['reviewReason'] as String?,
+      reviewedBy: json['reviewedBy'] as String?,
+      reviewedAt: json['reviewedAt'] == null ? null : DateTime.parse(json['reviewedAt'] as String),
+      reviewAction: json['reviewAction'] as String?,
     );
   }
 

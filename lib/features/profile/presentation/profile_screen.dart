@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/domain/user_role.dart';
+import '../../boats/providers/boat_provider.dart';
 import '../../booking/providers/booking_provider.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -115,24 +117,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Grid Menu
             FadeInUp(
               delay: const Duration(milliseconds: 300),
-              child: Consumer<BookingProvider>(
-                builder: (context, bookingProvider, _) {
-                  final tripCount = bookingProvider.bookings.length;
-                  return GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 1.1,
-                    children: [
-                      _buildGridItem(
-                        context,
-                        LineIcons.wallet,
-                        'Ví của tôi',
-                        'Thanh toán demo',
-                        onTap: () => context.push('/payment'),
-                      ),
+              child: Consumer3<BookingProvider, AuthProvider, BoatProvider>(
+                builder: (context, bookingProvider, auth, boatProvider, _) {
+                  final ownerBoatIds = boatProvider
+                      .boatsForAdminScope(auth.role, auth.displayEmail)
+                      .map((e) => e.id)
+                      .toSet();
+                  final tripCount = bookingProvider
+                      .visibleBookingsForRole(
+                        role: auth.role,
+                        email: auth.displayEmail,
+                        ownerBoatIds: ownerBoatIds,
+                      )
+                      .length;
+                  final isAdmin = auth.role == UserRole.admin;
+                  final isOwnerOrAdmin =
+                      auth.role == UserRole.shopOwner || isAdmin;
+                  final tiles = <Widget>[
+                    if (!isAdmin)
                       _buildGridItem(
                         context,
                         LineIcons.history,
@@ -140,25 +142,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         '$tripCount chuyến',
                         onTap: () => context.go('/bookings'),
                       ),
+                    if (!isAdmin)
                       _buildGridItem(
                         context,
                         LineIcons.heart,
                         'Yêu thích',
-                        'Tour nổi bật',
-                        onTap: () => context.go('/home'),
+                        'Thuyền đã lưu',
+                        onTap: () => context.push('/home/favorites'),
                       ),
+                    if (isOwnerOrAdmin)
                       _buildGridItem(
                         context,
                         LineIcons.gift,
-                        'Voucher',
-                        '3 mã',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Tính năng đang phát triển')),
-                          );
-                        },
+                        'Quản trị',
+                        isAdmin ? 'Admin Dashboard' : 'Owner Dashboard',
+                        onTap: () => context.push('/admin'),
                       ),
-                    ],
+                  ];
+                  return GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.1,
+                    children: tiles,
                   );
                 },
               ),

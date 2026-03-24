@@ -62,6 +62,13 @@ class BookingStatusBadge extends StatelessWidget {
           foreground: const Color(0xFFC62828),
           icon: Icons.cancel_outlined,
         );
+      case BookingStatus.rejected:
+        return _BadgeStyle(
+          background: const Color(0xFFFFF3E0),
+          border: const Color(0xFFFF9800).withValues(alpha: 0.5),
+          foreground: const Color(0xFFE65100),
+          icon: Icons.block_rounded,
+        );
     }
   }
 }
