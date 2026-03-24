@@ -3,6 +3,7 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../features/auth/providers/auth_provider.dart';
 import '../../features/booking/providers/booking_provider.dart';
 
 class MainLayout extends StatefulWidget {
@@ -15,6 +16,20 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
+  List<({int branch, GButton tab})> _tabConfig(bool isAdmin) {
+    if (isAdmin) {
+      return <({int branch, GButton tab})>[
+        (branch: 0, tab: const GButton(icon: Icons.home_filled, text: 'Trang chủ')),
+        (branch: 2, tab: const GButton(icon: Icons.person_outline, text: 'Cá nhân')),
+      ];
+    }
+    return <({int branch, GButton tab})>[
+      (branch: 0, tab: const GButton(icon: Icons.home_filled, text: 'Trang chủ')),
+      (branch: 1, tab: const GButton(icon: Icons.sailing_rounded, text: 'Đặt thuyền')),
+      (branch: 2, tab: const GButton(icon: Icons.person_outline, text: 'Cá nhân')),
+    ];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +48,11 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
-    // Current design is: Solid white background bottom nav bar
+    final auth = context.watch<AuthProvider>();
+    final config = _tabConfig(auth.isAdmin);
+    final selectedDisplayIndex = config.indexWhere(
+      (e) => e.branch == widget.navigationShell.currentIndex,
+    );
     return Scaffold(
       backgroundColor: Colors.white,
       body: widget.navigationShell,
@@ -60,14 +79,9 @@ class _MainLayoutState extends State<MainLayout> {
               duration: const Duration(milliseconds: 400),
               tabBackgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
               color: Colors.grey,
-              tabs: const [
-                GButton(icon: Icons.home_filled, text: 'Trang chủ'),
-                GButton(icon: Icons.sailing_rounded, text: 'Đặt thuyền'),
-                GButton(icon: Icons.location_on_outlined, text: 'Bản đồ'),
-                GButton(icon: Icons.person_outline, text: 'Cá nhân'),
-              ],
-              selectedIndex: widget.navigationShell.currentIndex,
-              onTabChange: _goBranch,
+              tabs: config.map((e) => e.tab).toList(),
+              selectedIndex: selectedDisplayIndex < 0 ? 0 : selectedDisplayIndex,
+              onTabChange: (i) => _goBranch(config[i].branch),
             ),
           ),
         ),

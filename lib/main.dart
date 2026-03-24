@@ -2,18 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as provider;
 import 'core/routes/app_router.dart';
+import 'core/services/local_notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/booking/providers/booking_provider.dart';
+import 'features/booking/providers/promo_provider.dart';
+import 'features/boats/providers/boat_provider.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LocalNotificationService.instance.init();
   runApp(
     ProviderScope(
       child: provider.MultiProvider(
         providers: [
           provider.ChangeNotifierProvider(create: (_) => AuthProvider()),
           provider.ChangeNotifierProvider(create: (_) => BookingProvider()),
+          provider.ChangeNotifierProvider(create: (_) => PromoProvider()),
+          provider.ChangeNotifierProvider(create: (_) => BoatProvider()),
         ],
         child: const MainApp(),
       ),
