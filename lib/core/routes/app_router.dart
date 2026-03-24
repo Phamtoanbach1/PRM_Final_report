@@ -12,6 +12,9 @@ import '../../features/home/presentation/home_screen.dart';
 import '../../features/tours/presentation/tours_screen.dart';
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/tours/presentation/boat_list_screen.dart';
+import '../../features/tours/presentation/boat_detail_screen.dart';
+import '../../features/payment/presentation/payment_screen.dart';
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -35,6 +38,21 @@ class AppRouter {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/boat-list',
+        builder: (context, state) => const BoatListScreen(),
+      ),
+      GoRoute(
+        path: '/boat-detail/:id',
+        builder: (context, state) {
+          final tourId = state.pathParameters['id']!;
+          return BoatDetailScreen(tourId: tourId);
+        },
+      ),
+      GoRoute(
+        path: '/payment',
+        builder: (context, state) => const PaymentScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

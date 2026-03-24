@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ToursScreen extends StatefulWidget {
   const ToursScreen({super.key});
@@ -190,7 +191,7 @@ class _ToursScreenState extends State<ToursScreen> {
                     Expanded(
                       flex: 1,
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: () => context.push('/boat-detail/1'),
                         style: OutlinedButton.styleFrom(
                           backgroundColor: Colors.blue[50], // Light blue
                           side: BorderSide.none,
@@ -204,7 +205,7 @@ class _ToursScreenState extends State<ToursScreen> {
                     Expanded(
                       flex: 1,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => context.push('/payment'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1B6BF3), // Solid Blue
                           padding: const EdgeInsets.symmetric(vertical: 14),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icons.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -71,23 +72,26 @@ class HomeScreen extends StatelessWidget {
                               )
                             ],
                           ),
-                          const SizedBox(height: 32),
                           // Search Bar over the image
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))
-                              ],
-                            ),
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Tìm kiếm tour, địa điểm...',
-                                hintStyle: const TextStyle(color: Colors.grey),
-                                icon: Icon(LineIcons.search, color: Colors.grey[400]),
-                                border: InputBorder.none,
+                          GestureDetector(
+                            onTap: () => context.push('/boat-list'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))
+                                ],
+                              ),
+                              child: TextField(
+                                enabled: false, // Make it readonly to trigger onTap of GestureDetector
+                                decoration: InputDecoration(
+                                  hintText: 'Tìm kiếm tour, địa điểm...',
+                                  hintStyle: const TextStyle(color: Colors.grey),
+                                  icon: Icon(LineIcons.search, color: Colors.grey[400]),
+                                  border: InputBorder.none,
+                                ),
                               ),
                             ),
                           ),
@@ -130,9 +134,9 @@ class HomeScreen extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  _buildTourCard('Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg'),
-                  _buildTourCard('Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg'),
-                  _buildTourCard('Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg'),
+                  _buildTourCard(context, 'Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg'),
+                  _buildTourCard(context, 'Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg'),
+                  _buildTourCard(context, 'Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg'),
                 ],
               ),
             ),
@@ -143,7 +147,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTourCard(String title, String price, String rating, String imageUrl) {
+  Widget _buildTourCard(BuildContext context, String title, String price, String rating, String imageUrl) {
     return Container(
       width: 220,
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -191,7 +195,7 @@ class HomeScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 40,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () => context.push('/payment'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6A74D1), // Purple-blue flat button
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

@@ -21,16 +21,16 @@ Future<void> main() async {
       final response = await request.close();
       if (response.statusCode == 200) {
         await response.pipe(File('assets/images/${entry.key}').openWrite());
-        print('Downloaded ${entry.key}');
+        stdout.writeln('Downloaded ${entry.key}');
       } else {
-        print('Failed ${entry.key}: ${response.statusCode}');
+        stdout.writeln('Failed ${entry.key}: ${response.statusCode}');
         // Provide dummy image
         final fallback = await HttpClient().getUrl(Uri.parse('https://dummyimage.com/600x400/0f1b3e/ffffff.png&text=${entry.key}'));
         final fbResp = await fallback.close();
         await fbResp.pipe(File('assets/images/${entry.key}').openWrite());
       }
     } catch (e) {
-      print('Error ${entry.key}: $e');
+      stdout.writeln('Error ${entry.key}: $e');
     }
   }
 }
