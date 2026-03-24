@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/constants/app_colors.dart';
@@ -176,31 +177,54 @@ class _MapScreenState extends State<MapScreen> {
                       BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 30, spreadRadius: 2)
                     ],
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 10)],
-                        ),
-                        child: const Icon(Icons.directions_boat, color: Colors.white, size: 36),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _selectedBoat!['name'],
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: AppColors.primaryGradient,
+                              shape: BoxShape.circle,
+                              boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 10)],
                             ),
-                            const SizedBox(height: 4),
-                            Text(_selectedBoat!['status'], style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                          ],
+                            child: const Icon(Icons.directions_boat, color: Colors.white, size: 36),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _selectedBoat!['name'] as String,
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _selectedBoat!['status'] as String,
+                                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      FilledButton.icon(
+                        onPressed: () {
+                          final id = _selectedBoat!['id'] as String;
+                          context.push('/bookings/create', extra: <String, dynamic>{'boatId': id});
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
+                        icon: const Icon(Icons.event_available_rounded),
+                        label: const Text('Đặt thuyền này'),
                       ),
                     ],
                   ),

@@ -1,74 +1,87 @@
 import 'package:flutter/material.dart';
+
 import '../../../data/local/shared_prefs_helper.dart';
 
 class AuthProvider extends ChangeNotifier {
-  bool _isLoading = false;
-  bool _isAuthenticated = false;
-
-  bool get isLoading => _isLoading;
-  bool get isAuthenticated => _isAuthenticated;
-
   AuthProvider() {
     checkAuthStatus();
   }
 
-  // Kiểm tra trạng thái đăng nhập khi khởi động app
+  bool _isLoading = false;
+  bool _isAuthenticated = false;
+  String? _email;
+  String? _name;
+
+  bool get isLoading => _isLoading;
+  bool get isAuthenticated => _isAuthenticated;
+
+  /// Email đang đăng nhập (để hiển thị hồ sơ & phân tách dữ liệu booking).
+  String? get displayEmail => _email;
+
+  /// Tên hiển thị (đăng ký), có thể null nếu chỉ đăng nhập.
+  String? get displayName => _name;
+
   Future<void> checkAuthStatus() async {
     _isAuthenticated = await SharedPrefsHelper.isLoggedIn();
+    _email = await SharedPrefsHelper.getUserEmail();
+    _name = await SharedPrefsHelper.getUserName();
     notifyListeners();
   }
 
-  // Logic Đăng nhập
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    // Giả lập thời gian gọi API
     await Future.delayed(const Duration(seconds: 1));
 
-    if (email.isNotEmpty && password.isNotEmpty) {
-      // Đăng nhập thành công, lưu session với token giả định
-      await SharedPrefsHelper.saveSession("mock_token_12345");
+    if (email.trim().isNotEmpty && password.isNotEmpty) {
+      await SharedPrefsHelper.saveSession(
+        token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
+        email: email.trim(),
+      );
+      _email = email.trim();
       _isAuthenticated = true;
       _isLoading = false;
       notifyListeners();
       return true;
-    } else {
-      _isLoading = false;
-      notifyListeners();
-      return false;
     }
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
 
-  // Logic Đăng ký
   Future<bool> register(String name, String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    // Giả lập thời gian gọi API
     await Future.delayed(const Duration(seconds: 1));
 
-    if (name.isNotEmpty && email.isNotEmpty && password.isNotEmpty) {
-      // Đăng ký thành công, tự động lưu phiên đăng nhập
-      await SharedPrefsHelper.saveSession("mock_token_12345");
+    if (name.trim().isNotEmpty && email.trim().isNotEmpty && password.isNotEmpty) {
+      await SharedPrefsHelper.saveSession(
+        token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
+        email: email.trim(),
+        name: name.trim(),
+      );
+      _email = email.trim();
+      _name = name.trim();
       _isAuthenticated = true;
       _isLoading = false;
       notifyListeners();
       return true;
-    } else {
-      _isLoading = false;
-      notifyListeners();
-      return false;
     }
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
 
-  // Logic Đăng xuất
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
-    
+
     await SharedPrefsHelper.clearSession();
     _isAuthenticated = false;
+    _email = null;
+    _name = null;
     _isLoading = false;
     notifyListeners();
   }

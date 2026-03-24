@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/booking/providers/booking_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,6 +11,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => BookingProvider()),
       ],
       child: const MainApp(),
     ),
