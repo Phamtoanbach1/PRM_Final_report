@@ -19,24 +19,49 @@ class BoatCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        elevation: 4,
+        elevation: 2,
+        clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: CachedNetworkImage(
-                imageUrl: boat.imageUrl,
-                height: 140,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => const SizedBox(
+            Stack(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: boat.imageUrl,
                   height: 140,
-                  child: Center(child: CircularProgressIndicator()),
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => const SizedBox(
+                    height: 140,
+                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  ),
+                  errorWidget: (_, __, ___) => const SizedBox(
+                    height: 140,
+                    child: Center(child: Icon(Icons.image_not_supported, size: 44)),
+                  ),
                 ),
-                errorWidget: (_, __, ___) => const Icon(Icons.image_not_supported, size: 80),
-              ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Material(
+                    color: Colors.white.withOpacity(0.9),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onFavoriteToggle,
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(
+                          boat.isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: boat.isFavorite ? Colors.red : Colors.grey.shade700,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.all(10),
@@ -50,7 +75,10 @@ class BoatCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text('${boat.capacity} người • ${boat.pricePerDay ~/ 1000}k/ngày'),
+                  Text(
+                    '${boat.capacity} người',
+                    style: TextStyle(color: Colors.grey.shade700),
+                  ),
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,12 +87,12 @@ class BoatCard extends StatelessWidget {
                         boat.availableFrom.toString().substring(0, 10),
                         style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
-                      IconButton(
-                        icon: Icon(
-                          boat.isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: boat.isFavorite ? Colors.red : null,
+                      Text(
+                        '${boat.pricePerDay ~/ 1000}k/ngày',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w700,
                         ),
-                        onPressed: onFavoriteToggle,
                       ),
                     ],
                   ),

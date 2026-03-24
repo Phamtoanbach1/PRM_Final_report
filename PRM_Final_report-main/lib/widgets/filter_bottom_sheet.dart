@@ -71,6 +71,16 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _date = null;
+                      _capacity = 0;
+                    });
+                  },
+                  icon: const Icon(Icons.restart_alt),
+                  label: const Text('Reset'),
+                ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Hủy'),
