@@ -134,9 +134,15 @@ class HomeScreen extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
+<<<<<<< HEAD
                   _buildTourCard(context, 'Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg'),
                   _buildTourCard(context, 'Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg'),
                   _buildTourCard(context, 'Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg'),
+=======
+                  _buildTourCard(context, 'Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg', boatId: 'boat_han_01'),
+                  _buildTourCard(context, 'Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg', boatId: 'boat_han_02'),
+                  _buildTourCard(context, 'Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg', boatId: 'boat_sunset'),
+>>>>>>> e02dd441d067738dce77013df773bb51c73afe4c
                 ],
               ),
             ),
@@ -147,7 +153,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+<<<<<<< HEAD
   Widget _buildTourCard(BuildContext context, String title, String price, String rating, String imageUrl) {
+=======
+  Widget _buildTourCard(
+    BuildContext context,
+    String title,
+    String price,
+    String rating,
+    String imageUrl, {
+    String? boatId,
+  }) {
+>>>>>>> e02dd441d067738dce77013df773bb51c73afe4c
     return Container(
       width: 220,
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -195,7 +212,17 @@ class HomeScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 40,
                   child: ElevatedButton(
+<<<<<<< HEAD
                     onPressed: () => context.push('/payment'),
+=======
+                    onPressed: () {
+                      if (boatId != null) {
+                        context.push('/bookings/create', extra: <String, dynamic>{'boatId': boatId});
+                      } else {
+                        context.push('/bookings/create');
+                      }
+                    },
+>>>>>>> e02dd441d067738dce77013df773bb51c73afe4c
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6A74D1), // Purple-blue flat button
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

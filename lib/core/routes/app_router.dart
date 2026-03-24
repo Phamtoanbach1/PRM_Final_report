@@ -9,17 +9,24 @@ import '../../features/auth/providers/auth_provider.dart';
 
 import '../widgets/main_layout.dart';
 import '../../features/home/presentation/home_screen.dart';
-import '../../features/tours/presentation/tours_screen.dart';
+import '../../features/booking/presentation/booking_create_screen.dart';
+import '../../features/booking/presentation/booking_detail_screen.dart';
+import '../../features/booking/presentation/bookings_screen.dart';
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+<<<<<<< HEAD
 import '../../features/tours/presentation/boat_list_screen.dart';
 import '../../features/tours/presentation/boat_detail_screen.dart';
 import '../../features/payment/presentation/payment_screen.dart';
+=======
+import '../../features/payment/presentation/payment_screen.dart';
+import '../../features/booking/domain/booking_model.dart';
+>>>>>>> e02dd441d067738dce77013df773bb51c73afe4c
 
 class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
   static final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
-  static final _shellNavigatorToursKey = GlobalKey<NavigatorState>(debugLabel: 'tours');
+  static final _shellNavigatorBookingsKey = GlobalKey<NavigatorState>(debugLabel: 'bookings');
   static final _shellNavigatorMapKey = GlobalKey<NavigatorState>(debugLabel: 'map');
   static final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
@@ -40,6 +47,7 @@ class AppRouter {
         builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
+<<<<<<< HEAD
         path: '/boat-list',
         builder: (context, state) => const BoatListScreen(),
       ),
@@ -53,6 +61,18 @@ class AppRouter {
       GoRoute(
         path: '/payment',
         builder: (context, state) => const PaymentScreen(),
+=======
+        path: '/payment',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra;
+          Booking? booking;
+          if (extra is Booking) {
+            booking = extra;
+          }
+          return PaymentScreen(booking: booking);
+        },
+>>>>>>> e02dd441d067738dce77013df773bb51c73afe4c
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -69,11 +89,32 @@ class AppRouter {
             ],
           ),
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorToursKey,
+            navigatorKey: _shellNavigatorBookingsKey,
             routes: [
               GoRoute(
-                path: '/tours',
-                builder: (context, state) => const ToursScreen(),
+                path: '/bookings',
+                builder: (context, state) => const BookingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    builder: (context, state) {
+                      String? boatId;
+                      final extra = state.extra;
+                      if (extra is Map) {
+                        final v = extra['boatId'];
+                        if (v is String) boatId = v;
+                      }
+                      return BookingCreateScreen(prefillBoatId: boatId);
+                    },
+                  ),
+                  GoRoute(
+                    path: 'detail/:id',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return BookingDetailScreen(bookingId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

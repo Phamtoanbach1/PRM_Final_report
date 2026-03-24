@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../features/booking/providers/booking_provider.dart';
+
 class MainLayout extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -11,6 +15,15 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<BookingProvider>().load();
+    });
+  }
+
   void _goBranch(int index) {
     widget.navigationShell.goBranch(
       index,
@@ -49,7 +62,7 @@ class _MainLayoutState extends State<MainLayout> {
               color: Colors.grey,
               tabs: const [
                 GButton(icon: Icons.home_filled, text: 'Trang chủ'),
-                GButton(icon: Icons.calendar_today_rounded, text: 'Lịch trình'),
+                GButton(icon: Icons.sailing_rounded, text: 'Đặt thuyền'),
                 GButton(icon: Icons.location_on_outlined, text: 'Bản đồ'),
                 GButton(icon: Icons.person_outline, text: 'Cá nhân'),
               ],

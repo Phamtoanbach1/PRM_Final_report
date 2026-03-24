@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/booking/providers/booking_provider.dart';
 
 import 'features/tours/providers/tour_provider.dart';
 
@@ -12,7 +13,11 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+<<<<<<< HEAD
         ChangeNotifierProvider(create: (_) => TourProvider()),
+=======
+        ChangeNotifierProvider(create: (_) => BookingProvider()),
+>>>>>>> e02dd441d067738dce77013df773bb51c73afe4c
       ],
       child: const MainApp(),
     ),
