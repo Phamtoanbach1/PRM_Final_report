@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../booking/providers/booking_provider.dart';
 import '../../../core/constants/app_colors.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -87,31 +88,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 24),
             FadeInUp(
               delay: const Duration(milliseconds: 100),
-              child: const Text('Thành viên VIP', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+              child: Consumer<AuthProvider>(
+                builder: (context, auth, _) {
+                  final label = auth.displayName ?? auth.displayEmail?.split('@').first ?? 'Thành viên';
+                  return Text(
+                    label,
+                    style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 8),
             FadeInUp(
               delay: const Duration(milliseconds: 200),
-              child: const Text('user@danangcruise.com', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+              child: Consumer<AuthProvider>(
+                builder: (context, auth, _) {
+                  return Text(
+                    auth.displayEmail ?? '—',
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 16),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 48),
-            
-            // Grid Menu
             FadeInUp(
               delay: const Duration(milliseconds: 300),
-              child: GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.1,
-                children: [
-                  _buildGridItem(LineIcons.wallet, 'Ví của tôi', '0đ'),
-                  _buildGridItem(LineIcons.history, 'Lịch sử', '12 chuyến'),
-                  _buildGridItem(LineIcons.heart, 'Yêu thích', '5 tour'),
-                  _buildGridItem(LineIcons.gift, 'Voucher', '3 mã'),
-                ],
+              child: Consumer<BookingProvider>(
+                builder: (context, bookingProvider, _) {
+                  final tripCount = bookingProvider.bookings.length;
+                  return GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.1,
+                    children: [
+                      _buildGridItem(
+                        context,
+                        LineIcons.wallet,
+                        'Ví của tôi',
+                        'Thanh toán demo',
+                        onTap: () => context.push('/payment'),
+                      ),
+                      _buildGridItem(
+                        context,
+                        LineIcons.history,
+                        'Lịch sử',
+                        ' chuyến',
+                        onTap: () => context.go('/bookings'),
+                      ),
+                      _buildGridItem(
+                        context,
+                        LineIcons.heart,
+                        'Yêu thích',
+                        'Tour nổi bật',
+                        onTap: () => context.go('/home'),
+                      ),
+                      _buildGridItem(
+                        context,
+                        LineIcons.gift,
+                        'Voucher',
+                        '3 mã',
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Tính năng đang phát triển')),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
 
@@ -123,8 +170,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        Provider.of<AuthProvider>(context, listen: false).logout();
+                      onPressed: () async {
+                        await Provider.of<AuthProvider>(context, listen: false).logout();
+                        if (!context.mounted) return;
+                        context.read<BookingProvider>().clearLocal();
                         context.go('/login');
                       },
                       icon: const Icon(LineIcons.alternateSignOut, color: Colors.red),
@@ -155,26 +204,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildGridItem(IconData icon, String title, String subtitle) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+  Widget _buildGridItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String subtitle, {
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      elevation: 1,
+      shadowColor: Colors.black26,
+      borderRadius: BorderRadius.circular(24),
+      color: Theme.of(context).cardColor,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 5))
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 36, color: AppColors.primary),
-          const Spacer(),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
-        ],
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 36, color: AppColors.primary),
+              const Spacer(),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 4),
+              Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+            ],
+          ),
+        ),
       ),
     );
   }

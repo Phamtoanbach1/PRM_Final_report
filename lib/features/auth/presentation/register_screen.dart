@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../../booking/providers/booking_provider.dart';
 import 'dart:ui';
 
 class RegisterScreen extends StatefulWidget {
@@ -19,6 +22,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _agreedToTerms = true;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,13 +124,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: double.infinity,
                             height: 50,
                             child: ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 if (!_agreedToTerms) {
                                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng đồng ý với điều khoản')));
                                   return;
                                 }
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đăng ký thành công!')));
-                                context.pop(); // Go back to login
+                                if (_passwordController.text != _confirmPasswordController.text) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mật khẩu xác nhận không khớp')));
+                                  return;
+                                }
+                                final auth = Provider.of<AuthProvider>(context, listen: false);
+                                final ok = await auth.register(
+                                  _nameController.text,
+                                  _emailController.text,
+                                  _passwordController.text,
+                                );
+                                if (!context.mounted) return;
+                                if (ok) {
+                                  await context.read<BookingProvider>().load();
+                                  if (context.mounted) context.go('/home');
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Điền đủ họ tên, email và mật khẩu')),
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.zero,

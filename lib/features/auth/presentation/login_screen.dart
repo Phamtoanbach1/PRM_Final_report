@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../../booking/providers/booking_provider.dart';
 import 'dart:ui';
 
 class LoginScreen extends StatefulWidget {
@@ -15,6 +16,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscureText = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,12 +94,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: ElevatedButton(
                               onPressed: () async {
                                 final auth = Provider.of<AuthProvider>(context, listen: false);
-                                await auth.login(_emailController.text, _passwordController.text);
-                                if (auth.isAuthenticated && context.mounted) {
-                                  context.go('/home');
-                                } else if (context.mounted) {
+                                final ok = await auth.login(_emailController.text, _passwordController.text);
+                                if (!context.mounted) return;
+                                if (ok) {
+                                  await context.read<BookingProvider>().load();
+                                  if (context.mounted) context.go('/home');
+                                } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Đăng nhập thất bại')),
+                                    const SnackBar(content: Text('Nhập đủ email và mật khẩu')),
                                   );
                                 }
                               },

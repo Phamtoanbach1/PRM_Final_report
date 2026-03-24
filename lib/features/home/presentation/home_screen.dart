@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:line_icons/line_icons.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -135,9 +136,9 @@ class HomeScreen extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  _buildTourCard(context,'Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg', 3),
-                  _buildTourCard(context,'Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg', 2),
-                  _buildTourCard(context,'Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg', 1),
+                  _buildTourCard(context, 'Tour Đêm Sông Hàn', '350.000đ', '4.8', 'assets/images/tour1.jpg', boatId: 'boat_han_01', id: 3),
+                  _buildTourCard(context, 'Tour Linh Sông Hàn', '350.000đ', '4.8', 'assets/images/tour2.jpg', boatId: 'boat_han_02', id: 2),
+                  _buildTourCard(context, 'Tour Hoàng Hôn', '300.000đ', '4.9', 'assets/images/tour3.jpg', boatId: 'boat_sunset', id: 1),
                 ],
               ),
             ),
@@ -148,7 +149,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTourCard(BuildContext context,String title, String price, String rating, String imageUrl, int boatId) {
+  Widget _buildTourCard(
+    BuildContext context,
+    String title,
+    String price,
+    String rating,
+    String imageUrl, {
+    String? boatId,
+    int? id,
+  }) {
     return Container(
       width: 220,
       margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -196,13 +205,21 @@ class HomeScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 40,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pushNamed('/boat/$boatId'),
+                    onPressed: () {
+                      if (boatId != null) {
+                        context.push('/bookings/create', extra: <String, dynamic>{'boatId': boatId});
+                      } else if (id != null) {
+                        Navigator.of(context).pushNamed('/boat/$id');
+                      } else {
+                        context.push('/bookings/create');
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6A74D1), // Purple-blue flat button
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-      child: Text('Đặt ngay', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text('Đặt ngay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 )
               ],
